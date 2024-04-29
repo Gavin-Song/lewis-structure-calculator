@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Lewis Structure Calculator</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+
+    <meta name="description" content="A calculator for automatically computing lewis structure bonds for different molecules!">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+    <link rel="manifest" href="img/site.webmanifest">
+    <link rel="mask-icon" href="img/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="shortcut icon" href="img/favicon.ico">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="msapplication-config" content="img/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body class="dashed-grid-paper">
+    <main>
+        <div class="control-container">
+            <div style="float: right; display: flex">
+                <h1 id="logo-title">LEWIS<br>STRUCTURE<br>CALCULATOR</h1>
+                <img id="logo" src="img/logo.png" alt="Lewis Structure Calculator logo">
+            </div>
+            <div id="selected-element">H</div>
+
+            <button class="el-btn" onclick="updateSelectedElement(this.innerText)" autofocus>H</button>
+            <button class="el-btn" onclick="updateSelectedElement(this.innerText)">C</button>
+            <button class="el-btn" onclick="updateSelectedElement(this.innerText)">N</button>
+            <button class="el-btn" onclick="updateSelectedElement(this.innerText)">O</button>
+            <button class="el-btn" onclick="updateSelectedElement(this.innerText)">F</button>
+            <button class="el-btn" onclick="updateSelectedElement(this.innerText)">Cl</button>
+            <button class="el-btn" onclick="updateSelectedElement(this.innerText)">I</button>
+            <button class="el-btn" onclick="updateSelectedElement(this.innerText)">S</button>
+            <button class="el-btn" onclick="updateSelectedElement(this.innerText)">P</button>
+            <button class="el-btn" onclick="updateSelectedElement(this.innerText)">Se</button>
+            <button class="el-btn" onclick="openElementSelector()">Other</button>
+
+            &nbsp; &nbsp; Molecule charge:
+            <button class="charge-btn" onclick="window.setMoleculeCharge(-4);">-4</button> <!-- updateSelectedElement('charge:' + this.innerText) -->
+            <button class="charge-btn" onclick="window.setMoleculeCharge(-3);">-3</button>
+            <button class="charge-btn" onclick="window.setMoleculeCharge(-2);">-2</button>
+            <button class="charge-btn" onclick="window.setMoleculeCharge(-1);">-1</button>
+            <button class="charge-btn" onclick="window.setMoleculeCharge(0);">+0</button>
+            <button class="charge-btn" onclick="window.setMoleculeCharge(1);">+1</button>
+            <button class="charge-btn" onclick="window.setMoleculeCharge(2);">+2</button>
+            <button class="charge-btn" onclick="window.setMoleculeCharge(3);">+3</button>
+            <button class="charge-btn" onclick="window.setMoleculeCharge(4);">+4</button>
+
+
+            <div style="margin-top: 12px">
+                Load example:
+                <select name="examples" id="examples"></select>
+
+                &nbsp; &nbsp;
+                <button class="el-btn" style="border-color: #eb4034; color: #eb4034;" onclick="if (confirm('Are you sure you want to clear the screen?')) {  window.resetDrawingState() }">Clear screen</button>
+                &nbsp; &nbsp;
+                <button class="el-btn" onclick="document.getElementById('algo-modal').style.display = 'block';">Algorithm Explanation</button>
+            </div>
+        </div>
+
+        <div id="periodic-table" style="display: none"></div>
+
+        <div id="help-text">
+            <ul>
+                <li><b>Drag</b> between two atoms to create bond</li>
+                <li><b>Right click</b> to remove atom or bond</li>
+                <li><b>ctrl+z</b> / <b>ctrl+y</b> for undo/redo</li>
+                <li><b>shift + drag</b> to move atom</li>
+                <br>
+                Formal charges and lone pairs will be<br>
+                automatically calculated.
+            </ul>
+
+            <ul id="errors" style="margin-top: 15px;"></ul>
+
+            <div id="molecule-stats"></div>
+
+            <br>
+            <span style="color: #347ad1"><b>Electronegativity (less to more):</b></span><br>
+            <span id="electronegativity">N/A</span>
+
+            <br><br>
+            <span style="color: #fc8c03"><b>Period 3 and beyond (can have 8+ electrons):</b></span><br>
+            <span id="period3">None</span>
+
+            <p>Note: Hydrogen can only have 2 electrons. Elements in period 3 and beyond can have more than 8 electrons.</p>
+            <p>Molecule shapes in the examples may not be 100% accurate. Electrons are distributed round-robin in pairs to the central atoms.</p>
+        </div>
+
+        <canvas id="canvas" oncontextmenu="return false;"></canvas>
+    </main>
+
+    <div id="algo-modal" style="display: none">
+        <div class="modal">
+            <h2>Algorithm Explanation</h2>
+
+            Some quick conventions:
+            <pre class="code-block"><code>Variable declaration:
+    var_name = value
+
+Terminology / definitions:
+    term := definition
+
+Elements: [Element symbol]
+    Example: [Fe] means iron
+
+--- Section header ---
+
+function function_name(x):
+    return value</code></pre> 
+
+            After the user has made an edit to the diagram, we perform the following on the graph:
+
+            <pre class="code-block"><code>--- Distributing electrons ---
+N = sum of valence shell electron count for all atoms
+V = Pool of N electrons we can draw from
+
+define:
+    terminal atoms := are all atoms with 1 bond
+    central atoms  := are atoms with more than 1 bond
+
+for: all terminal atoms that aren't [H]:
+    Give electrons from V to complete octet
+    This will reduce the value of V
+
+sorted_central = sort all central atoms that aren't [H]
+                 by decreasing electronegativity
+fair_split_amt = floor(V / sorted_central.length)
+
+for: atom in sorted_central:
+    Distribute min(fair_split_amt, electrons required to complete octet)
+    V -= amount that was distributed
+
+Distribute remaining electrons in V two at a time in a round-robin fashion
+    to any atoms in sorted_central that can accept it, specifically:
+    #electrons in atom + atoms distributed &lt;= max_electrons for atom
+
+    max_electrons for atom is determined as follows:
+        [H]: 2
+        [atom.period >= 3]: Infinity
+        else: 8
+
+    Hydrogen can only hold two electrons, and atoms period 3 and beyond
+    can generally hold more than 8.
+
+--- Making double/triple bonds ---
+(There should not be any remaining electrons at this step)
+
+function getBondElectronCount(atom):
+    return 2 * sum of number of bonds to atom.
+           Double/triple count as 2/3 respectively
+
+function computeFormalCharge(atom):
+    bond_electrons = getBondElectronCount(atom)
+    V = valence shell electron count for [atom.element]
+    f = # free electrons in the atom
+    return V - bond_electrons / 2 - f
+
+function getTotalElectronCount(atom):
+    return getBondElectronCount(atom) + # free electrons in atom
+
+compute formal charge for every atom
+
+first form double / triple bonds by comparing formal charges:
+for: each bond pair (atom1, atom2):
+    if formal charges differ in sign:
+        try to "consume" 1 free electron from each atom to
+        increase the bond strength and get the formal charge
+        as close to zero as possible.
+
+        Example:
+            - atom1 has formal charge of +1
+            - atom2 has formal charge of -1
+            - both atoms have 4 free electrons
+            - atom1 and atom2 can each consume 1 free electron to
+              make their current bond into a double bond. This 
+              makes the formal charge of both atoms 0.
+
+        Limitations:
+        1. Bond strength cannot exceed 3
+        2. Both atoms must have enough free electrons
+        3. One atom cannot be [H]
+        4. At most min(|atom1.formal_charge|, |atom2.formal_charge|) electrons
+            can be consumed from each atom.
+
+next, resolve incomplete octets:
+for: each atom1 in all atoms:
+    e1 = getTotalElectronCount(atom1)
+    if e1 >= 8 or e1 is [H]: continue  
+    
+    -- Incomplete octet for atom1
+    for: each atom2 that shares a bond with atom1 sorted
+            by decreasing electronegativity:
+
+        e2 = getTotalElectronCount(atom2)
+        if e2 >= 8 or e2 is [H]: continue
+
+        -- Now we have a bond atom1, atom2 both with incomplete octets
+        form as many bonds as possible, this value is equal to:
+
+        electrons_to_take_from_each = min(
+            e1, e2,
+            -- This limits bonds to at most triple bonds:
+            3 - current bond strength between atom1 and atom2
+        )
+
+        subtract electrons_to_take_from_each free electrons from
+        both atom1 and atom2, and strengthen the bond strength by 1
+        for every electron taken from each.
+    
+Recalc new formal charges for all atoms again for display</code></pre>
+
+<p>We perform the following sanity checks:</p>
+
+<ol>
+    <li>Are there too many electrons to fit in all the atoms?</li>
+    <li>Is the graph fully connected (1 molecule)</li>
+    <li>Are there too many bonds (total valence - bond electrons < 0)</li>
+    <li>Do any atoms have more electrons than possible? Ie hydrogen having 3 bonds.</li>
+</ol>
+
+
+<p>This algorithm is not guaranteed to be correct, especially in chemistry where there are many exceptions. However all the examples provided 
+    should be correct, so this algorithm at least generalizes very well to the types of problems you see in school.
+</p>
+
+            <button class="el-btn" onclick="document.getElementById('algo-modal').style.display='none'">CLOSE</button>
+        </div>
+    </div>
+    
+    <script src="js/util.js"></script>
+    <script src="js/periodic-table.js"></script>
+
+    <script src="js/element-selector.js"></script>
+    <script src="js/molecule-drawing.js"></script>
+    <script src="js/examples.js"></script>
+</body>
+
+</html>

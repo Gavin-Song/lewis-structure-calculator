@@ -1,0 +1,224 @@
+body {
+    margin: 0;
+    font-family: "Montserrat", sans-serif;
+    font-size: 11pt;
+}
+
+#logo {
+    float: right;
+    max-height: 80px;
+}
+#logo-title {
+    margin: 0;
+    font-size: 16pt;
+    text-align: right;
+    margin-right: 20px;
+}
+
+.dashed-grid-paper {
+    --grid-size: 30px;
+    --grid-strength: 1px;
+    --grid-dash: 10px;
+    --grid-gap: 5px;
+    --grid-color: #ddd;
+    --paper-color: #fff;
+
+    background-color: var(--paper-color);
+    background-size: var(--grid-dash) var(--grid-dash), var(--grid-size) var(--grid-size);
+    background-image:
+        linear-gradient(to bottom, transparent var(--grid-gap), var(--paper-color) var(--grid-gap)),
+        linear-gradient(to right, var(--grid-color) var(--grid-strength), transparent var(--grid-strength)),
+        linear-gradient(to right, transparent var(--grid-gap), var(--paper-color) var(--grid-gap)),
+        linear-gradient(to bottom, var(--grid-color) var(--grid-strength), transparent var(--grid-strength));
+}
+
+#canvas {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: transparent;
+    z-index: -1;
+}
+
+#periodic-table {
+    background: white;
+    width: 720px;
+    height: 420px;
+    border: 1px solid black;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0px 3px 12px 0px rgba(0, 0, 0, 0.15);
+    z-index: 99;
+}
+
+#help-text {
+    width: 400px;
+    padding-top: 20px;
+    padding-right: 20px;
+    position: fixed;
+    height: calc(100vh - 180px);
+    overflow-y: scroll;
+    right: 0;
+}
+
+#help-text > ul {
+    padding: 0;
+    margin: 0;
+}
+
+#molecule-stats { margin-top: 36px; }
+
+#molecule-stats > table {
+    border-collapse: collapse;
+}
+#molecule-stats th,
+#molecule-stats td {
+    border: 1px solid #aaa;
+    margin: 0;
+    padding: 8px;
+}
+
+
+#molecule-stats {
+    width: 400px;
+}
+
+.control-container {
+    background: white;
+    padding: 15px;
+    margin: 10px;
+    box-shadow: 0px 3px 12px 0px rgba(0, 0, 0, 0.05);
+    border: 1px solid #bbb;
+}
+
+button {
+    cursor: pointer;
+    font-family: "Montserrat", sans-serif;
+    outline: none;
+}
+
+#examples {
+    padding: 10px;
+    border-radius: 0px;
+    width: 260px;
+    border: 1px solid #aaa;
+    outline: none;
+    font-family: "Montserrat", sans-serif;
+}
+
+#errors {
+    color: #ff333a;
+}
+
+.el-btn {
+    padding: 10px;
+    border-radius: 0px !important;
+    background-color: white;
+    color: black;
+    border: 1px solid #aaa;
+    text-align: center;
+    user-select: none;
+}
+.el-btn:hover {
+    border: 1px solid #347ad1;
+    background-color: #dbebff;
+}
+.el-btn:focus,
+.el-btn.selected {
+    border: 1px solid #1a5196;
+    background-color: #6dacfc;
+}
+
+#selected-element {
+    font-size: 36pt;
+    border: 1px solid #777;
+    float: left;
+    width: 110px;
+    height: 90px;
+    margin-right: 20px;
+    text-align: center;
+    line-height: 90px;
+    font-weight: bold;
+    position: relative;
+
+    background-image: linear-gradient(45deg, #ffffff 25%, #f5f5f5 25%, #f5f5f5 50%, #ffffff 50%, #ffffff 75%, #f5f5f5 75%, #f5f5f5 100%);
+    background-size: 56.57px 56.57px;
+}
+#selected-element::after {
+    content: "Selected element";
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: gray;
+    font-size: 8pt;
+    width: 100%;
+    height: 20px;
+    line-height: 20px;
+    font-weight: normal;
+}
+
+.charge-btn {
+    padding: 5px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: white;
+    color: black;
+    border: 1px solid #aaa;
+    text-align: center;
+    user-select: none;
+}
+.charge-btn:hover {
+    border: 1px solid #347ad1;
+    background-color: #dbebff;
+}
+
+.charge-btn:focus,
+.charge-btn.selected {
+    border: 1px solid #1a5196;
+    background-color: #6dacfc;
+}
+
+#electronegativity { color: #347ad1; }
+#period3 { color: #fc8c03; }
+
+#algo-modal {
+    position: fixed;
+    z-index: 99998;
+    background-color: rgba(0, 0, 0, 0.6);
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    overflow: auto;
+}
+
+#algo-modal > .modal {
+    padding: 15px;
+    max-width: 90%;
+    width: 700px;
+    background: white;
+    box-shadow: 0px 3px 12px 0px rgba(0, 0, 0, 0.05);
+    border: 1px solid #bbb;
+
+    z-index: 99999;
+    height: 90vh;
+    overflow-y: scroll;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+}
+
+.code-block {
+    max-width: 670px;
+    overflow-x: auto;
+    box-sizing: border-box;
+    background: #333;
+    color: #ccc;
+    padding: 15px;
+}
