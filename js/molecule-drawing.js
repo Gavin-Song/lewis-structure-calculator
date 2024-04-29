@@ -189,7 +189,7 @@ window.updateGraphState = () => {
                     (getMaxElectronsForAtom(atom) - electrons1) / 2,
                     (getMaxElectronsForAtom(neighbor) - electrons2) / 2,
                     amt);
- 
+
                 if (amt > 0) {
                     atom.charge += charge1sign * amt;
                     neighbor.charge += charge2sign * amt;
@@ -212,10 +212,11 @@ window.updateGraphState = () => {
     }
 
     // Resolve incomplete octets
+    const getElectronCount = atom => getElectronsInBonds(atom) + (graphState.idToElectrons[atom.id] || 0);
+
     for (let atom of window.drawingState.atoms) {
         if (atom.type === 'H') continue;
 
-        let getElectronCount = atom => getElectronsInBonds(atom) + (graphState.idToElectrons[atom.id] || 0);
         let electrons1 = getElectronCount(atom);
         if (electrons1 < 8) {
             let sortedNeighbors = graphState.bondIdMap[atom.id].map(x => graphState.idToAtomMap[x]);
@@ -243,6 +244,32 @@ window.updateGraphState = () => {
     }
 
     if (recalcFormal) computeFormalCharges();
+    recalcFormal = false;
+
+    // Try to resolve atoms with too many electrons
+    for (let atom of window.drawingState.atoms) {
+        let electrons = getElectronsInBonds(atom) + (graphState.idToElectrons[atom.id] || 0);
+        let maxElectronsForAtom = getMaxElectronsForAtom(atom);
+
+        if (electrons > maxElectronsForAtom) {
+            let sortedNeighbors = (graphState.bondIdMap[atom.id] || []).map(x => graphState.idToAtomMap[x]);
+            sortedNeighbors.sort((b, a) => PERIODIC_TABLE_MAP[a.type].electronegativity_pauling - PERIODIC_TABLE_MAP[b.type].electronegativity_pauling);
+
+            for (let neighbor of sortedNeighbors) {
+                if (electrons <= maxElectronsForAtom) break;
+                if (neighbor.type === 'H') continue;
+    
+                let electrons2 = getElectronCount(neighbor);
+                let bondStrength = graphState.bondStrengthMap[`${atom.id},${neighbor.id}`];
+
+                if (electrons2 === 8 && bondStrength > 1) {
+                    setBondStrength(atom, neighbor, bondStrength - 1);
+                    electrons -= 2;
+                    graphState.idToElectrons[neighbor.id] += 2;
+                }
+            }
+        }
+    }
 
     // Sanity checks
     // ------------------
