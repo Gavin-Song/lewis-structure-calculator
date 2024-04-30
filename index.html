@@ -73,6 +73,11 @@
 
         <div id="periodic-table" style="display: none"></div>
 
+        <div class="vsper-container">
+            <img id="VSPER-img"><br>
+            <span id="VESPR"></span>
+        </div>
+
         <div id="help-text">
             <ul>
                 <li><b>Drag</b> between two atoms to create bond</li>
@@ -98,6 +103,9 @@
 
             <p>Note: Hydrogen can only have 2 electrons. Elements in period 3 and beyond can have more than 8 electrons.</p>
             <p>Molecule shapes in the examples may not be 100% accurate. Electrons are distributed round-robin in pairs to the central atoms.</p>
+        
+            <p>VSEPR classification is done via simple pattern matching. The CN (classification number) is the number of lone electron <i>pairs</i> + the number of bonds (not double counting double/triple bonds)</i>.
+            Images are from <a href="https://sl.wikipedia.org/wiki/Molekularna_geometrija">this wikipedia article.</a></p>
         </div>
 
         <canvas id="canvas" oncontextmenu="return false;"></canvas>

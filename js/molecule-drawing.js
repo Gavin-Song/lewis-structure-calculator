@@ -482,6 +482,46 @@ function removeHoveredBond() {
     }
 }
 
+/**
+ * Classify central atom with VESPR theory
+ * @param {DrawnAtom} atom Atom
+ * @return {string} Shape of central atom thing
+ */
+function classifyVESPR(atom) {
+    const freeElectrons = (graphState.idToElectrons[atom?.id] || 0) / 2;
+    const bonds = graphState.bondIdMap[atom?.id]?.length || 0;
+    const stericNumber = bonds + freeElectrons;
+
+    if (freeElectrons === 0 && stericNumber === 2) return ['Linear (0 pairs CN = 2)', 'linear.png'];
+
+    if (freeElectrons === 0 && stericNumber === 3) return ['Trigonal Planar', 'trigonal-planar.png'];
+    if (freeElectrons === 1 && stericNumber === 3) return ['Angled (1 pair CN = 3)', 'angled.png'];
+    if (freeElectrons === 2 && stericNumber === 3) return ['Linear (2 pairs CN = 3)', 'linear-2.png'];
+
+    if (freeElectrons === 0 && stericNumber === 4) return ['Tetrahedral', 'tetrahedral.png'];
+    if (freeElectrons === 1 && stericNumber === 4) return ['Trigonal pyramidal', 'trigonal-pyramidal.png'];
+    if (freeElectrons === 2 && stericNumber === 4) return ['Angled (2 pairs CN = 4)', 'angled.png'];
+    if (freeElectrons === 3 && stericNumber === 4) return ['Linear (3 pairs CN = 4)', 'linear-2.png'];
+
+    if (freeElectrons === 0 && stericNumber === 5) return ['Trigonal bipyramidal', 'trigonal-bipyramidal.png'];
+    if (freeElectrons === 1 && stericNumber === 5) return ['Seesaw (bisphenoidal)', 'seesaw.png'];
+    if (freeElectrons === 2 && stericNumber === 5) return ['T-shaped', 't.png'];
+    if (freeElectrons === 3 && stericNumber === 5) return ['Linear (3 pairs CN = 5)', 'linear.png'];
+
+    if (freeElectrons === 0 && stericNumber === 6) return ['Octahedral', 'octahedral.png'];
+    if (freeElectrons === 1 && stericNumber === 6) return ['Square pyramidal', 'square-pyramidal.png'];
+    if (freeElectrons === 2 && stericNumber === 6) return ['Square planar', 'square-planar.png'];
+
+    if (freeElectrons === 0 && stericNumber === 7) return ['Pentagonal bipyramidal', 'pentagonal-bipyramidal.png'];
+    if (freeElectrons === 1 && stericNumber === 7) return ['Pentagonal pyramidal', 'pentagonal-pyramidal.png'];
+    if (freeElectrons === 2 && stericNumber === 7) return ['Pentagonal planar', 'pentagonal-planar.png'];
+
+    if (freeElectrons === 0 && stericNumber === 8) return ['Square antiprismatic', 'square-antiprismatic.png'];
+    if (freeElectrons === 0 && stericNumber === 9) return ['Tricapped trigonal prismatic', 'tricapped.png'];
+
+    return ['Unknown', 'sphere.png'];
+}
+
 
 document.addEventListener('keyup', e => {
     if (e.key === 'Shift') {
@@ -603,13 +643,28 @@ function drawCanvas() {
             window.uiState.mousePos[0], window.uiState.mousePos[1]);
     }
 
+    let hoveredAtom = null;
+    for (let atom of window.drawingState.atoms) {
+        let dis = distance(atom.x, atom.y, window.uiState.mousePos[0], window.uiState.mousePos[1]);
+        if (dis < ATOM_CLICK_DISTANCE_THRESHOLD) {
+            hoveredAtom = atom;
+            break;
+        }
+    }
+
+    const classify = hoveredAtom ? classifyVESPR(hoveredAtom) : [];
+    document.getElementById('VESPR').innerText = hoveredAtom ? classify[0] : 'Hover an atom';
+    document.getElementById('VSPER-img').src = hoveredAtom ? 'img/vsper/' + classify[1] : 'img/vsper/sphere.png';
+
     // Render connections first
     for (let atom of window.drawingState.atoms) {
         for (let other of [...atom.connectTo]) {
             const isHover = bondHoverDis(atom, other) < ATOM_CLICK_DISTANCE_THRESHOLD;
+            const isAdjacentHover = (atom.id === hoveredAtom?.id || other.id === hoveredAtom?.id) &&
+                (graphState.bondIdMap[hoveredAtom?.id] || []).length > 1;
             const bondStrength = graphState.bondStrengthMap[`${atom.id},${other.id}`];
 
-            ctx.strokeStyle = isHover ? '#69c3ff' : '#333';
+            ctx.strokeStyle = isHover ? '#69c3ff' : isAdjacentHover ? '#eb7434' : '#333';
             if (!bondStrength || bondStrength === 1 || bondStrength === 3)
                 line(ctx, atom.x, atom.y, other.x, other.y);
             if (bondStrength > 1) {
@@ -627,12 +682,14 @@ function drawCanvas() {
     ctx.lineWidth = 1;
 
     for (let atom of window.drawingState.atoms) {
-        let dis = distance(atom.x, atom.y, window.uiState.mousePos[0], window.uiState.mousePos[1]);
-        let isHover = dis < ATOM_CLICK_DISTANCE_THRESHOLD;
+        let isHover = atom.id === hoveredAtom?.id;
+        let isAdjacentHover = (graphState.bondIdMap[hoveredAtom?.id] || []).includes(atom.id) &&
+            (graphState.bondIdMap[hoveredAtom?.id] || []).length > 1;
         let isFirst = atom.id === window.drawingState.selectedAtom?.id;
 
-        ctx.fillStyle = isHover ? '#dbebff' : 'white';
-        ctx.strokeStyle = isHover ? '#1a5196' : 'black';
+        ctx.fillStyle = isHover ? '#dbebff' : isAdjacentHover ? '#ffcdb3' : 'white';
+        ctx.strokeStyle = isHover ? '#1a5196' : isAdjacentHover ? '#eb7434' : 'black';
+        ctx.lineWidth = isAdjacentHover ? 3 : 1;
         if (isFirst) ctx.fillStyle = '#d1e3ff';
         circle(ctx, atom.x, atom.y, ATOM_SIZE);
 
